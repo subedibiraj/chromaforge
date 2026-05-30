@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
-from torch.cuda.amp import GradScaler, autocast
+from torch.amp import autocast
 from torchvision import transforms
 from PIL import Image
 from skimage.color import rgb2lab, lab2rgb
@@ -316,8 +316,8 @@ def train():
     sched_D = optim.lr_scheduler.LambdaLR(opt_D, lr_lambda)
 
     # Mixed precision
-    scaler_G = GradScaler()
-    scaler_D = GradScaler()
+    scaler_G = torch.amp.GradScaler("cuda")
+    scaler_D = torch.amp.GradScaler("cuda")
 
     # Resume from checkpoint if exists
     start_epoch = 1
@@ -347,9 +347,10 @@ def train():
         for L, AB_real in pbar:
             L, AB_real = L.to(DEVICE), AB_real.to(DEVICE)
 
+            torch.cuda.empty_cache()
             # Discriminator
             opt_D.zero_grad()
-            with autocast():
+            with autocast('cuda'):
                 AB_fake = G(L).detach()
                 loss_D  = 0.5 * (criterion_gan(D(L, AB_real), True) + criterion_gan(D(L, AB_fake), False))
             scaler_D.scale(loss_D).backward()
@@ -358,7 +359,7 @@ def train():
 
             # Generator
             opt_G.zero_grad()
-            with autocast():
+            with autocast('cuda'):
                 AB_fake = G(L)
                 loss_G  = criterion_gan(D(L, AB_fake), True) + criterion_l1(AB_fake, AB_real) * CFG['lambda_l1']
             scaler_G.scale(loss_G).backward()
@@ -376,8 +377,9 @@ def train():
         batch_metrics = []
         with torch.no_grad():
             for L, AB_real in val_loader:
-                AB_fake = G(L.to(DEVICE))
-                batch_metrics.append(evaluate_batch(L, AB_real, AB_fake.cpu()))
+                AB_fake = G(L.to(DEVICE)).cpu()
+                torch.cuda.empty_cache()
+                batch_metrics.append(evaluate_batch(L, AB_real, AB_fake))
                 if len(batch_metrics) >= 10:
                     break
 

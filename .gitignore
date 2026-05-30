@@ -18,3 +18,5 @@ Thumbs.db
 
 # Training artifacts
 *.zip
+
+training/runs/

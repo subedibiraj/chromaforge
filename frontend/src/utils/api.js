@@ -22,7 +22,7 @@ export class ApiError extends Error {
  */
 export async function colorizeImage(file, onProgress) {
   const formData = new FormData();
-  formData.append('image', file);
+  formData.append('file', file);
 
   // Use XMLHttpRequest for upload progress tracking
   return new Promise((resolve, reject) => {

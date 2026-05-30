@@ -1,0 +1,20 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pth
+*.h5
+.env
+venv/
+.venv/
+
+# React
+node_modules/
+build/
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Training artifacts
+*.zip

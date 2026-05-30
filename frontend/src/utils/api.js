@@ -22,15 +22,14 @@ export class ApiError extends Error {
  */
 export async function colorizeImage(file, onProgress) {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('file', file, file.name);
 
-  // Use XMLHttpRequest for upload progress tracking
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
     xhr.upload.addEventListener('progress', (e) => {
       if (e.lengthComputable) {
-        onProgress?.(Math.round((e.loaded / e.total) * 50)); // 0–50% = upload
+        onProgress?.(Math.round((e.loaded / e.total) * 50));
       }
     });
 
@@ -42,7 +41,8 @@ export async function colorizeImage(file, onProgress) {
       } else {
         let detail = 'Unknown error';
         try {
-          detail = JSON.parse(xhr.responseText)?.detail || detail;
+          const text = new TextDecoder().decode(xhr.response);
+          detail = JSON.parse(text)?.detail || detail;
         } catch {}
         reject(new ApiError(detail, xhr.status));
       }
@@ -58,10 +58,9 @@ export async function colorizeImage(file, onProgress) {
 
     xhr.open('POST', `${BASE_URL}/colorize`);
     xhr.responseType = 'arraybuffer';
-    xhr.timeout = 60_000; // 60 second timeout
+    xhr.timeout = 60_000;
     xhr.send(formData);
 
-    // Simulate inference progress (server doesn't stream progress)
     let inferenceProgress = 50;
     const inferenceTimer = setInterval(() => {
       inferenceProgress = Math.min(inferenceProgress + 3, 90);

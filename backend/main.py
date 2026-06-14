@@ -183,7 +183,7 @@ async def lifespan(app: FastAPI):
     generator = UNetGenerator().to(DEVICE)
 
     if MODEL_PATH.exists():
-        state = torch.load(MODEL_PATH, map_location=DEVICE)
+        state = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=False)
         generator.load_state_dict(state)
         logger.info("Weights loaded successfully.")
     else:

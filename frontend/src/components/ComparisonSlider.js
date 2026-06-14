@@ -61,7 +61,7 @@ export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'com
         <img
           src={originalSrc}
           alt={`${alt} original`}
-          style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain', background: '#000' }}
           draggable={false}
         />
       </div>

@@ -1,13 +1,9 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 
-/**
- * ComparisonSlider — drag the divider to reveal original vs. colorized.
- * Pure CSS + pointer events, no external library.
- */
 export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'comparison' }) {
-  const [pos, setPos]       = useState(50);   // percent
+  const [pos, setPos]           = useState(50);
   const [dragging, setDragging] = useState(false);
-  const containerRef        = useRef(null);
+  const containerRef            = useRef(null);
 
   const getPercent = useCallback((clientX) => {
     const rect = containerRef.current.getBoundingClientRect();
@@ -27,11 +23,18 @@ export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'com
 
   const onPointerUp = useCallback(() => setDragging(false), []);
 
-  // Keyboard accessibility
   const onKeyDown = useCallback((e) => {
     if (e.key === 'ArrowLeft')  setPos(p => Math.max(0,   p - 2));
     if (e.key === 'ArrowRight') setPos(p => Math.min(100, p + 2));
   }, []);
+
+  const imgStyle = {
+    display: 'block',
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
+    objectPosition: 'center',
+  };
 
   return (
     <div
@@ -39,57 +42,69 @@ export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'com
       style={{
         position: 'relative',
         userSelect: 'none',
-        borderRadius: '12px',
+        borderRadius: 12,
         overflow: 'hidden',
         cursor: dragging ? 'grabbing' : 'col-resize',
         boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+        background: '#000',
+        maxHeight: 520,
+        aspectRatio: '4/3',
       }}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
-      {/* Colorized (full width, underneath) */}
+      {/* Colorized — right side, full width base layer */}
       <img
         src={colorizedSrc}
         alt={`${alt} colorized`}
-        style={{ display: 'block', width: '100%', height: 'auto', maxHeight: '500px', objectFit: 'contain' }}
+        style={{ ...imgStyle, position: 'absolute', inset: 0 }}
         draggable={false}
       />
 
-      {/* Original (clipped to left of slider) */}
+      {/* Original — left side, clipped */}
       <div style={{
-        position: 'absolute', inset: 0,
+        position: 'absolute',
+        inset: 0,
         clipPath: `inset(0 ${100 - pos}% 0 0)`,
         transition: dragging ? 'none' : 'clip-path 0.05s',
       }}>
         <img
           src={originalSrc}
           alt={`${alt} original`}
-          style={{ display: 'block', width: '100%', height: 'auto', maxHeight: '500px', objectFit: 'contain', filter: 'grayscale(100%)' }}
+          style={{ ...imgStyle, position: 'absolute', inset: 0 }}
           draggable={false}
         />
       </div>
 
-      {/* Labels */}
+      {/* Label — Original (left) */}
       <span style={{
         position: 'absolute', top: 12, left: 12,
-        background: 'rgba(0,0,0,0.55)', color: '#fff',
-        fontSize: 12, fontWeight: 500, padding: '3px 8px',
-        borderRadius: 4, pointerEvents: 'none',
-        opacity: pos > 20 ? 1 : 0, transition: 'opacity 0.2s',
-      }}>Original</span>
+        background: 'rgba(0,0,0,0.6)', color: '#fff',
+        fontSize: 11, fontWeight: 600, padding: '4px 10px',
+        borderRadius: 4, pointerEvents: 'none', letterSpacing: '0.03em',
+        opacity: pos > 15 ? 1 : 0, transition: 'opacity 0.2s',
+      }}>
+        Original
+      </span>
+
+      {/* Label — Colorized (right) */}
       <span style={{
         position: 'absolute', top: 12, right: 12,
-        background: 'rgba(0,0,0,0.55)', color: '#fff',
-        fontSize: 12, fontWeight: 500, padding: '3px 8px',
-        borderRadius: 4, pointerEvents: 'none',
-        opacity: pos < 80 ? 1 : 0, transition: 'opacity 0.2s',
-      }}>Colorized</span>
+        background: 'rgba(99,102,241,0.85)', color: '#fff',
+        fontSize: 11, fontWeight: 600, padding: '4px 10px',
+        borderRadius: 4, pointerEvents: 'none', letterSpacing: '0.03em',
+        opacity: pos < 85 ? 1 : 0, transition: 'opacity 0.2s',
+      }}>
+        Colorized
+      </span>
 
-      {/* Divider line + handle */}
+      {/* Divider */}
       <div
         role="slider"
         aria-label="Comparison slider"
-        aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pos)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(pos)}
         tabIndex={0}
         onPointerDown={onPointerDown}
         onKeyDown={onKeyDown}
@@ -98,25 +113,23 @@ export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'com
           left: `calc(${pos}% - 1px)`,
           width: 2,
           background: '#fff',
-          boxShadow: '0 0 8px rgba(0,0,0,0.5)',
+          boxShadow: '0 0 8px rgba(0,0,0,0.6)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'col-resize',
           outline: 'none',
         }}
       >
-        {/* Handle circle */}
         <div style={{
-          width: 36, height: 36,
+          width: 38, height: 38,
           borderRadius: '50%',
           background: '#fff',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.35)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0,
-          gap: 3,
+          gap: 4,
         }}>
-          {['◀', '▶'].map((ch, i) => (
-            <span key={i} style={{ fontSize: 10, color: '#444', lineHeight: 1 }}>{ch}</span>
-          ))}
+          <span style={{ fontSize: 10, color: '#444', lineHeight: 1 }}>◀</span>
+          <span style={{ fontSize: 10, color: '#444', lineHeight: 1 }}>▶</span>
         </div>
       </div>
     </div>

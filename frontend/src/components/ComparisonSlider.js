@@ -28,14 +28,6 @@ export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'com
     if (e.key === 'ArrowRight') setPos(p => Math.min(100, p + 2));
   }, []);
 
-  const imgStyle = {
-    display: 'block',
-    width: '100%',
-    height: '100%',
-    objectFit: 'contain',
-    objectPosition: 'center',
-  };
-
   return (
     <div
       ref={containerRef}
@@ -46,22 +38,20 @@ export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'com
         overflow: 'hidden',
         cursor: dragging ? 'grabbing' : 'col-resize',
         boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
-        background: '#000',
-        maxHeight: 520,
-        aspectRatio: '4/3',
+        lineHeight: 0,
       }}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
-      {/* Colorized — right side, full width base layer */}
+      {/* Colorized — base layer, determines container height */}
       <img
         src={colorizedSrc}
         alt={`${alt} colorized`}
-        style={{ ...imgStyle, position: 'absolute', inset: 0 }}
+        style={{ display: 'block', width: '100%', height: 'auto', maxHeight: 600 }}
         draggable={false}
       />
 
-      {/* Original — left side, clipped */}
+      {/* Original — absolutely positioned, clipped to left of slider */}
       <div style={{
         position: 'absolute',
         inset: 0,
@@ -71,7 +61,7 @@ export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'com
         <img
           src={originalSrc}
           alt={`${alt} original`}
-          style={{ ...imgStyle, position: 'absolute', inset: 0 }}
+          style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
           draggable={false}
         />
       </div>

@@ -125,6 +125,13 @@ a pre-trained Keras model. This version constitutes a complete rewrite:
 new architecture, new training pipeline, quantitative evaluation, and a
 production deployment.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/demo_grid.png}
+\caption{Example colorization outputs. From left to right: input grayscale (L channel), ChromaForge cGAN colorization, and original ground truth.}
+\label{fig:demo}
+\end{figure}
+
 % ── 1.5 ──────────────────────────────────────────────────────────────────────
 \section{Related Work}
 
@@ -397,6 +404,21 @@ modest PSNR reduction of 0.07~dB relative to the U-Net + L1 model (23.67 vs.\
 23.74). For reference, natural photographs in COCO typically score 25--40 on the
 colorfulness metric, placing the cGAN's predictions within the natural range
 while the L1-only models produce visibly desaturated outputs.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[b]{0.48\textwidth}
+\includegraphics[width=\textwidth]{../figures/colorfulness_comparison.pdf}
+\caption{Colorfulness distribution (last 5 epochs)}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.48\textwidth}
+\includegraphics[width=\textwidth]{../figures/metric_summary.pdf}
+\caption{Final metric comparison}
+\end{subfigure}
+\caption{Comparison of regression vs.\ adversarial objectives. The cGAN dramatically increases colorfulness without significantly harming PSNR or SSIM.}
+\label{fig:metrics}
+\end{figure}
 
 \textbf{PSNR and SSIM favor desaturation.} An important observation is that the
 CNN baseline achieves a high SSIM (0.909) despite producing the least colorful

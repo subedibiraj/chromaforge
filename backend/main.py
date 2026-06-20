@@ -10,6 +10,7 @@ import logging
 import os
 import time
 import uuid
+import warnings
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
@@ -20,7 +21,7 @@ import torch.nn as nn
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
-from PIL import Image
+from PIL import Image, ImageOps
 from skimage.color import lab2rgb, rgb2lab
 from skimage.transform import resize
 
@@ -134,12 +135,19 @@ class UNetGenerator(nn.Module):
 
 # ── Image Processing ─────────────────────────────────────────────────────────
 
-def preprocess(image_bytes: bytes) -> tuple[torch.Tensor, np.ndarray]:
+def preprocess(image_bytes: bytes) -> tuple[torch.Tensor, np.ndarray, tuple[int, int]]:
     """
     Convert raw image bytes → model-ready tensor.
-    Returns (tensor, original_L_channel) for reconstruction.
+    Applies EXIF orientation correction (phone photos store rotation as
+    metadata rather than rotating pixels, so this must run before any
+    other processing or output will appear rotated).
+    Returns (tensor, original_L_channel, original_size) for reconstruction.
     """
-    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    img = Image.open(io.BytesIO(image_bytes))
+    img = ImageOps.exif_transpose(img)  # apply stored orientation, strip EXIF
+    img = img.convert("RGB")
+    original_size = img.size  # (W, H), used to restore output to input resolution
+
     img_np = np.array(img, dtype=np.float32) / 255.0
     img_resized = resize(img_np, (IMG_SIZE, IMG_SIZE), anti_aliasing=True)
     img_lab = rgb2lab(img_resized).astype(np.float32)
@@ -147,12 +155,14 @@ def preprocess(image_bytes: bytes) -> tuple[torch.Tensor, np.ndarray]:
     L = img_lab[:, :, 0]                        # [0, 100]
     L_norm = (L / 50.0) - 1.0                   # → [-1, 1]
     tensor = torch.from_numpy(L_norm).unsqueeze(0).unsqueeze(0)  # (1,1,H,W)
-    return tensor, L
+    return tensor, L, original_size
 
 
-def postprocess(pred_ab: torch.Tensor, L: np.ndarray) -> bytes:
+def postprocess(pred_ab: torch.Tensor, L: np.ndarray, original_size: tuple[int, int]) -> bytes:
     """
     Merge predicted AB channels with original L → RGB image bytes (JPEG).
+    Upscales back to the input resolution so output quality is not
+    capped at the model's fixed 256x256 working resolution.
     """
     ab = pred_ab.squeeze(0).permute(1, 2, 0).cpu().numpy()  # (H,W,2)
     ab = ab * 128.0                              # [-1,1] → [-128, 128]
@@ -161,12 +171,19 @@ def postprocess(pred_ab: torch.Tensor, L: np.ndarray) -> bytes:
     lab[:, :, 0] = L
     lab[:, :, 1:] = ab
 
-    rgb = lab2rgb(lab)                           # [0, 1]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # LAB→RGB clipping warnings are expected, not errors
+        rgb = lab2rgb(lab)               # [0, 1]
     rgb_uint8 = (rgb * 255).clip(0, 255).astype(np.uint8)
 
     out = Image.fromarray(rgb_uint8)
+    # Restore original aspect ratio / resolution rather than returning a
+    # fixed 256x256 image, which previously made output look low quality
+    # regardless of the input's actual size.
+    out = out.resize(original_size, Image.LANCZOS)
+
     buf = io.BytesIO()
-    out.save(buf, format="JPEG", quality=92)
+    out.save(buf, format="JPEG", quality=95)
     return buf.getvalue()
 
 
@@ -261,13 +278,13 @@ async def colorize(file: UploadFile = File(...)):
     t0 = time.perf_counter()
 
     try:
-        tensor, L = preprocess(raw)
+        tensor, L, original_size = preprocess(raw)
         tensor = tensor.to(DEVICE)
 
         with torch.inference_mode():
             pred_ab = generator(tensor)
 
-        result_bytes = postprocess(pred_ab, L)
+        result_bytes = postprocess(pred_ab, L, original_size)
 
     except Exception as exc:
         logger.exception(f"[{request_id}] Inference failed: {exc}")

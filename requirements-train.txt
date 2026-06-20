@@ -1,0 +1,19 @@
+# Training environment — pinned versions for reproducibility
+# Install: pip install -r requirements-train.txt
+
+torch>=2.2.0
+torchvision>=0.17.0
+numpy>=1.24.0
+Pillow>=10.0.0
+scikit-image>=0.21.0
+matplotlib>=3.7.0
+tqdm>=4.65.0
+pyyaml>=6.0
+
+# Evaluation (optional — needed for evaluate.py)
+lpips>=0.1.4
+scipy>=1.10.0
+
+# Development
+black>=23.0
+isort>=5.12

@@ -1,4 +1,4 @@
-﻿# Python
+# Python
 __pycache__/
 *.py[cod]
 *.pth
@@ -20,3 +20,7 @@ Thumbs.db
 *.zip
 
 training/runs/
+training/runs_cnn_baseline/
+training/runs_unet_l1/
+data/
+.vscode/

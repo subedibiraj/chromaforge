@@ -1,0 +1,39 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# ChromaForge — U-Net + L1 ablation configuration
+# Same U-Net generator architecture, trained with L1 loss only (no GAN)
+# ──────────────────────────────────────────────────────────────────────────────
+
+experiment:
+  name: "chromaforge-unet-l1"
+  description: "U-Net generator trained with L1 loss only (no adversarial loss)"
+
+data:
+  data_dir: "data/train2017"
+  img_size: 256
+  val_fraction: 0.1
+  subset_size: 20000
+
+training:
+  batch_size: 8
+  num_workers: 4
+  epochs: 20
+  seed: 42
+
+optimizer:
+  lr: 2.0e-4
+  beta1: 0.5
+  beta2: 0.999
+
+loss:
+  lambda_l1: 1.0
+
+scheduler:
+  decay_epoch: 10
+
+checkpointing:
+  save_every: 5
+  sample_every: 5
+  n_val_samples: 8
+
+output:
+  output_dir: "training/runs_unet_l1"

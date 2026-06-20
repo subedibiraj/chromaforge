@@ -1,4 +1,4 @@
-\documentclass[11pt, a4paper]{article}
+\documentclass[11pt,a4paper]{article}
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -17,12 +17,14 @@
 \usepackage{fancyhdr}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{enumitem}
+\usepackage{abstract}
 
 \hypersetup{
-  colorlinks=true,
-  linkcolor=blue!70!black,
-  citecolor=blue!70!black,
-  urlcolor=blue!70!black,
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    citecolor=blue!60!black,
+    urlcolor=blue!60!black
 }
 
 \titleformat{\section}{\large\bfseries}{{\thesection.}}{0.5em}{}
@@ -34,21 +36,25 @@
 \lhead{\small \thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
+% -- Title -------------------------------------------------------------------
+\title{
+    \vspace{-1cm}
+    {\LARGE \textbf{ChromaForge: A Comparative Study of Deep Learning Approaches\\[4pt]
+    for Automatic Grayscale Image Colorization}}
+}
+\author{
+    Biraj Subedi \\
+    \small Independent Researcher \\
+    \small \href{https://github.com/birajsubedi/chromaforge}{github.com/birajsubedi/chromaforge} \\
+    \small \texttt{contact@biraj-subedi.com.np}
+}
+\date{Technical Report $\cdot$ \today}
+
 % ─────────────────────────────────────────────────────────────────────────────
 \begin{document}
+\maketitle
 
-\begin{center}
-  {\LARGE \textbf{ChromaForge: A Comparative Study of Deep Learning Approaches\\[4pt]
-  for Automatic Grayscale Image Colorization}}\\[1.2em]
-  {\large Your Full Name}\\[0.3em]
-  {\normalsize Department of Computer Engineering, Your Institution}\\[0.2em]
-  {\normalsize \texttt{your.email@institution.edu}}\\[0.8em]
-  {\small Technical Report · \today}
-\end{center}
-
-\vspace{0.5em}
-\noindent\rule{\linewidth}{0.8pt}
-
+% -- Abstract ----------------------------------------------------------------
 \begin{abstract}
 Automatic colorization of grayscale images is a one-to-many inverse problem: a
 single luminance signal is consistent with infinitely many valid color
@@ -60,25 +66,27 @@ a U-Net architecture with skip connections, and finally extend the system to a
 conditional generative adversarial network (cGAN) using a PatchGAN discriminator
 and a combined adversarial + reconstruction objective.
 
-All three models are trained on the COCO 2017 dataset (118,000 images) and
+All three models are trained on the COCO 2017 dataset and
 evaluated on peak signal-to-noise ratio (PSNR), structural similarity (SSIM),
-and the Hasler--Süsstrunk colorfulness metric. Our findings confirm that while
-the regression baseline achieves the highest PSNR, it systematically produces
-desaturated, low-chrominance outputs. The cGAN formulation yields a
-quantitatively lower PSNR but substantially higher colorfulness, consistent with
-the adversarial objective's bias toward perceptually plausible rather than
-pixel-accurate predictions. We discuss the implications of this trade-off and
-identify conditions under which each formulation is preferable.
+and the Hasler--S\"usstrunk colorfulness metric. Our findings confirm that while
+the regression baselines achieve competitive or higher PSNR and SSIM scores, they
+systematically produce desaturated, low-chrominance outputs. The cGAN formulation
+yields comparable PSNR but substantially higher colorfulness ($\sim$32 vs.
+$\sim$14--16 for the baselines), consistent with the adversarial objective's
+bias toward perceptually plausible rather than pixel-accurate predictions. We
+discuss the implications of this trade-off and identify conditions under which
+each formulation is preferable.
 
 The trained system is deployed as a publicly accessible web application. All
 training code, model weights, and this report are released openly at
-\url{https://github.com/your-username/chromaforge}.
+\url{https://github.com/birajsubedi/chromaforge}.
 \end{abstract}
 
-\noindent\rule{\linewidth}{0.4pt}
 \vspace{0.5em}
+\hrule
+\vspace{1em}
 
-% ── 1 ────────────────────────────────────────────────────────────────────────
+% ── 1. Introduction ──────────────────────────────────────────────────────────
 \section{Introduction}
 
 Colorization of grayscale images is a long-standing problem in computer vision
@@ -98,6 +106,7 @@ viable with deep learning: Zhang et al.~\cite{zhang2016colorization} demonstrate
 that a classification-based CNN trained on millions of images could produce
 plausible colorizations without any user input, while Isola et
 al.~\cite{isola2017pix2pix} showed that a conditional adversarial objective
+(see Section~1.5 for a detailed review of related work)
 encourages higher-chrominance, more visually vivid outputs compared to a
 pure regression formulation.
 
@@ -115,6 +124,45 @@ The project began as an undergraduate exploration of image colorization using
 a pre-trained Keras model. This version constitutes a complete rewrite:
 new architecture, new training pipeline, quantitative evaluation, and a
 production deployment.
+
+% ── 1.5 ──────────────────────────────────────────────────────────────────────
+\section{Related Work}
+
+\textbf{Learning-based colorization.}
+The earliest fully automatic deep learning approach to colorization was proposed
+by Cheng et al.~(2015), who used a four-layer neural network with hand-crafted
+features. Zhang et al.~\cite{zhang2016colorization} reformulated colorization as
+a classification problem over quantized AB color bins and introduced a
+class-rebalancing loss to combat the dominance of low-saturation colors. Their
+work established the LAB-space formulation used in this study.
+
+\textbf{Conditional adversarial networks.}
+Isola et al.~\cite{isola2017pix2pix} proposed the pix2pix framework, a general
+purpose conditional GAN for image-to-image translation tasks including
+colorization, segmentation, and edges-to-photos. Their U-Net generator and
+70$\times$70 PatchGAN discriminator form the architectural basis of our cGAN
+model. The combination of adversarial and L1 losses was shown to produce sharper,
+more colorful outputs than L1 alone.
+
+\textbf{Instance-aware and semantic approaches.}
+Su et al.~(2020) introduced InstColorization, which applies separate
+colorization networks to detected object instances and the full image,
+fusing the results to handle multi-object scenes. Semantic conditioning via
+pre-trained features (e.g., VGG, CLIP~\cite{radford2021clip}) has been explored
+to resolve color ambiguity by providing high-level context.
+
+\textbf{Diffusion-based colorization.}
+More recently, diffusion probabilistic models have been applied to
+colorization. Saharia et al.~\cite{saharia2022palette} demonstrated that
+Palette, an image-to-image diffusion model, can produce diverse, high-quality
+colorizations by sampling from the learned posterior distribution. This
+addresses the one-to-many nature of colorization more principally than GANs,
+though at significantly higher computational cost.
+
+Our work does not propose a new method. Instead, we present a careful
+implementation and controlled comparison within the pix2pix framework,
+isolating the contributions of architecture (CNN vs.\ U-Net) and loss function
+(L1 vs.\ adversarial + L1) under matched experimental conditions.
 
 % ── 2 ────────────────────────────────────────────────────────────────────────
 \section{Background}
@@ -234,28 +282,38 @@ Discriminator (Patch) & $(B, 3, 256, 256)$ & $(B, 1, 30, 30)$ \\
 
 All models are trained and evaluated on the COCO 2017 training split
 (118,287 images)~\cite{lin2014coco}. We apply a fixed 90/10 train/validation
-split with a seeded random shuffle to ensure reproducibility across runs.
-Images are resized to $256\times256$ using Lanczos resampling.
+split with a seeded random shuffle (seed = 42) to ensure reproducibility across
+runs. Images are resized to $256\times256$ using Lanczos resampling.
 Approximately 2.3\% of images in the dataset are grayscale; these are excluded
 at load time since they carry no chrominance supervision signal.
 
 \subsection{Training Protocol}
 
+The cGAN model (Model~3) was trained on the full COCO 2017 training set for
+100 epochs. The two baseline models (Models~1 and~2) were trained on a
+20,000-image random subset for 20 epochs due to computational constraints.
+We acknowledge this asymmetry as a limitation (see Section~7); the baseline
+results therefore represent a lower bound on what these architectures could
+achieve with matched compute. Despite this disadvantage, the baselines still
+achieve competitive PSNR and SSIM, which strengthens the conclusion that
+colorfulness differences are primarily attributable to the loss function.
+
 \begin{center}
-\begin{tabular}{ll}
+\begin{tabular}{llll}
 \toprule
-\textbf{Hyperparameter} & \textbf{Value} \\
+\textbf{Hyperparameter} & \textbf{CNN Baseline} & \textbf{U-Net + L1} & \textbf{cGAN} \\
 \midrule
-Image size       & $256 \times 256$ \\
-Batch size       & 16 \\
-Epochs           & 100 \\
-Optimizer        & Adam ($\beta_1=0.5$, $\beta_2=0.999$) \\
-Learning rate    & $2 \times 10^{-4}$ (constant for 50 epochs, then linear decay) \\
-$\lambda_{L1}$   & 100 \\
-GAN real label   & 0.9 (label smoothing) \\
-Weight init      & $\mathcal{N}(0, 0.02)$ for Conv; $\mathcal{N}(1, 0.02)$ for BN \\
-Augmentation     & Horizontal flip (p=0.5), brightness jitter $\in [0.8, 1.2]$ \\
-Hardware         & NVIDIA T4 (Google Colab) \\
+Training images  & 20,000     & 20,000     & 118,287 \\
+Epochs           & 20         & 20         & 100 \\
+Batch size       & 16         & 8          & 8 \\
+Optimizer        & \multicolumn{3}{c}{Adam ($\beta_1=0.5$, $\beta_2=0.999$)} \\
+Learning rate    & $2{\times}10^{-4}$  & $2{\times}10^{-4}$  & $2{\times}10^{-4}$ \\
+LR schedule      & constant   & constant   & constant 50 ep., then linear decay \\
+$\lambda_{L1}$   & ---        & ---        & 100 \\
+GAN real label   & ---        & ---        & 0.9 (label smoothing) \\
+Weight init      & \multicolumn{3}{c}{$\mathcal{N}(0, 0.02)$ for Conv; $\mathcal{N}(1, 0.02)$ for BN} \\
+Augmentation     & H-flip     & H-flip     & H-flip + brightness jitter $\in [0.8, 1.2]$ \\
+Hardware         & RTX 3060   & RTX 3060   & RTX 3060 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -290,44 +348,69 @@ typically scores 25--40.
 
 \begin{table}[H]
 \centering
-\caption{Validation set results on COCO 2017 (90/10 split, 10 random batches per epoch).
-Colorfulness is measured on predicted images only (no reference needed).
-$\uparrow$ = higher is better.}
+\caption{Validation set results on COCO 2017. PSNR and SSIM are computed between
+predicted and ground-truth colorizations. Colorfulness is a reference-free
+perceptual metric measured on the predicted images only.
+$\uparrow$ = higher is better. Best value in each column is \textbf{bolded}.
+Note: baselines were trained on a 20k-image subset for 20 epochs; the cGAN
+was trained on the full 118k dataset for 100 epochs (see Section~4.2).}
 \label{tab:results}
 \begin{tabular}{lccc}
 \toprule
 \textbf{Model} & \textbf{PSNR (dB) $\uparrow$} & \textbf{SSIM $\uparrow$} & \textbf{Colorfulness $\uparrow$} \\
 \midrule
-CNN Regression (baseline) & 23.6 & 0.851 & 8.3  \\
-U-Net + L1                & 24.1 & 0.863 & 12.4 \\
-U-Net + cGAN (ours)       & \textbf{26.4} & \textbf{0.892} & \textbf{31.2} \\
+CNN Regression (baseline) & 23.24 & 0.909 & 13.7  \\
+U-Net + L1                & \textbf{23.74} & \textbf{0.914} & 16.1 \\
+U-Net + cGAN (ours)       & 23.67 & 0.891 & \textbf{31.8} \\
 \bottomrule
-\multicolumn{4}{l}{\small \textit{Note: replace these figures with your actual training results before submission.}}
 \end{tabular}
 \end{table}
 
+% Include training curves figure if available
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../figures/training_curves.pdf}
+\caption{Training dynamics across all three models. (Top-left) Generator and
+discriminator losses for the cGAN. (Top-right) PSNR vs.\ epoch.
+(Bottom-left) SSIM vs.\ epoch. (Bottom-right) Colorfulness vs.\ epoch.
+The cGAN converges to dramatically higher colorfulness while maintaining
+competitive PSNR and SSIM.}
+\label{fig:training_curves}
+\end{figure}
+
 \subsection{Discussion}
 
-Several observations follow from Table~\ref{tab:results}.
+Several observations follow from Table~\ref{tab:results} and
+Figure~\ref{fig:training_curves}.
 
-\textbf{U-Net skip connections improve all metrics.} Comparing the CNN baseline
-to the U-Net + L1 model isolates the architectural contribution: skip connections
-alone improve PSNR by 0.5 dB and SSIM by 0.012, confirming that spatial detail
-preserved through skip paths is beneficial for chrominance prediction.
+\textbf{U-Net skip connections improve PSNR and SSIM.} Comparing the CNN
+baseline to the U-Net + L1 model isolates the architectural contribution: skip
+connections improve best PSNR by 0.50~dB (23.24 $\to$ 23.74) and SSIM by 0.005
+(0.909 $\to$ 0.914). This confirms that spatial detail preserved through skip
+paths is beneficial for chrominance prediction, consistent with the original
+U-Net findings~\cite{ronneberger2015unet}.
 
-\textbf{The adversarial objective trades pixel accuracy for perceptual quality.}
-The cGAN achieves the highest colorfulness score — nearly four times the L1-only
-baseline — while also improving PSNR. The PSNR gain is somewhat surprising:
-we attribute it to the discriminator acting as an implicit regularizer that
-discourages the generator from producing flat, washed-out predictions that would
-be trivially identified as fake. The adversarial signal forces the generator to
-commit to plausible colors, which in this dataset's distribution happens to also
-be closer to the ground truth.
+\textbf{The adversarial objective dramatically increases colorfulness at modest
+PSNR cost.} The cGAN achieves a colorfulness score of 31.8 — nearly double the
+U-Net + L1 (16.1) and more than double the CNN baseline (13.7). This comes at a
+modest PSNR reduction of 0.07~dB relative to the U-Net + L1 model (23.67 vs.\
+23.74). For reference, natural photographs in COCO typically score 25--40 on the
+colorfulness metric, placing the cGAN's predictions within the natural range
+while the L1-only models produce visibly desaturated outputs.
 
-\textbf{Colorfulness is a necessary companion to PSNR.} PSNR alone would suggest
-the regression baseline is acceptable. Colorfulness scores reveal that its
-predictions are largely desaturated, which is immediately apparent to a human
-observer but invisible in the PSNR figure.
+\textbf{PSNR and SSIM favor desaturation.} An important observation is that the
+CNN baseline achieves a high SSIM (0.909) despite producing the least colorful
+outputs. This is because pixel-level metrics reward the ``safe'' strategy of
+predicting near-grey values. When the model is uncertain between red and blue,
+predicting grey minimizes MSE. Colorfulness scores expose this failure mode:
+PSNR alone would suggest the baseline is nearly as good as the cGAN.
+
+\textbf{Colorfulness is a necessary companion to PSNR.} These results
+reinforce the argument made by Isola et al.~\cite{isola2017pix2pix} and
+Zhang et al.~\cite{zhang2016colorization}: pixel-level metrics are insufficient
+for evaluating generative image tasks. The colorfulness gap between models
+(13.7 vs.\ 31.8) is immediately apparent to human observers but invisible
+in the PSNR figures.
 
 \subsection{Failure Cases}
 
@@ -359,6 +442,23 @@ purposes.
 
 % ── 7 ────────────────────────────────────────────────────────────────────────
 \section{Limitations and Future Directions}
+
+\textbf{Unmatched training compute for baselines.} The CNN baseline and U-Net +
+L1 models were trained on a 20,000-image subset for 20 epochs, while the cGAN
+was trained on the full 118,287-image dataset for 100 epochs. This asymmetry
+means the baseline PSNR/SSIM values represent a lower bound; with matched compute,
+the baselines would likely achieve higher scores. However, we note that even
+under this disadvantage, the baselines achieve \emph{competitive} PSNR and SSIM,
+which strengthens the conclusion that colorfulness differences are primarily
+attributable to the loss function, not the training data volume. A controlled
+replication with matched compute is planned.
+
+\textbf{Missing perceptual metrics.} We report PSNR, SSIM, and colorfulness but
+omit Fr\'echet Inception Distance (FID) and Learned Perceptual Image Patch
+Similarity (LPIPS), which are standard in the generative modeling literature.
+Future work should include these metrics, evaluated on a held-out test set
+(COCO 2017 val, 5,000 images) rather than validation batches sampled during
+training.
 
 \textbf{Fixed resolution.} All models process images at $256\times256$.
 Applying the generator at higher resolution without retraining produces
@@ -396,8 +496,8 @@ sufficient on its own.
 
 The deployed system demonstrates that the gap between a research prototype and a
 usable application is bridgeable with modest engineering effort. The full
-codebase, training notebook, and model weights are available at
-\url{https://github.com/your-username/chromaforge}.
+codebase, training scripts, and model weights are available at
+\url{https://github.com/birajsubedi/chromaforge}.
 
 \bibliographystyle{unsrt}
 \begin{thebibliography}{99}

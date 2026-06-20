@@ -1,0 +1,40 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# ChromaForge — cGAN experiment configuration
+# U-Net Generator + PatchGAN Discriminator with L_adv + 100·L_L1
+# ──────────────────────────────────────────────────────────────────────────────
+
+experiment:
+  name: "chromaforge-cgan"
+  description: "U-Net Generator + PatchGAN Discriminator with L_adv + 100*L_L1"
+
+data:
+  data_dir: "data/train2017"
+  img_size: 256
+  val_fraction: 0.1
+
+training:
+  batch_size: 8
+  num_workers: 4
+  epochs: 100
+  seed: 42
+
+optimizer:
+  lr_g: 2.0e-4
+  lr_d: 2.0e-4
+  beta1: 0.5
+  beta2: 0.999
+
+loss:
+  lambda_l1: 100.0
+  gan_real_label: 0.9
+
+scheduler:
+  decay_epoch: 50
+
+checkpointing:
+  save_every: 10
+  sample_every: 5
+  n_val_samples: 8
+
+output:
+  output_dir: "training/runs"

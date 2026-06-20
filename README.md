@@ -19,11 +19,11 @@ The project compares three progressively capable formulations trained on the sam
 
 | Model | PSNR (dB) ↑ | SSIM ↑ | Colorfulness ↑ |
 |-------|------------:|-------:|---------------:|
-| CNN regression baseline | — | — | — |
-| U-Net + L1 loss | — | — | — |
-| U-Net + cGAN (this work) | — | — | — |
+| CNN regression baseline | 23.24 | 0.909 | 13.7 |
+| U-Net + L1 loss | **23.74** | **0.914** | 16.1 |
+| U-Net + cGAN (this work) | 23.67 | 0.891 | **31.8** |
 
-*Results will be updated on training completion.*
+*Note: Baselines trained on 20k-image subset (20 epochs); cGAN trained on full 118k dataset (100 epochs). See report for discussion of this asymmetry.*
 
 ---
 

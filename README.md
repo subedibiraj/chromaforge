@@ -1,5 +1,10 @@
 # ChromaForge
 
+<div align="center">
+  <img src="docs/figures/demo_grid.png" alt="ChromaForge Demo Grid (Grayscale, cGAN Colorized, Original)" width="100%" />
+  <p><em>From left to right: Grayscale input, ChromaForge cGAN colorization, Original ground truth</em></p>
+</div>
+
 Automatic grayscale image colorization using a conditional generative adversarial network. The generator learns to predict chrominance from luminance by competing against a patch-level discriminator trained to distinguish real from synthesized colors.
 
 **Live demo:** [chromaforge.biraj-subedi.com.np](https://chromaforge.biraj-subedi.com.np)  

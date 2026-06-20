@@ -39,19 +39,27 @@ export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'com
         cursor: dragging ? 'grabbing' : 'col-resize',
         boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
         lineHeight: 0,
+        margin: '0 auto',
+        maxWidth: 'fit-content',
       }}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
-      {/* Colorized — base layer, determines container height */}
+      {/*
+        Colorized image is the base layer and dictates the container's
+        natural size. The original is overlaid at identical dimensions
+        (inset: 0) and clipped to reveal it on the left of the divider.
+        Since the backend now returns output at the same resolution as
+        the input, both images share dimensions and no letterboxing
+        should occur under normal operation.
+      */}
       <img
         src={colorizedSrc}
         alt={`${alt} colorized`}
-        style={{ display: 'block', width: '100%', height: 'auto', maxHeight: 600 }}
+        style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: 600 }}
         draggable={false}
       />
 
-      {/* Original — absolutely positioned, clipped to left of slider */}
       <div style={{
         position: 'absolute',
         inset: 0,
@@ -61,12 +69,11 @@ export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'com
         <img
           src={originalSrc}
           alt={`${alt} original`}
-          style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain', background: '#000' }}
+          style={{ display: 'block', width: '100%', height: '100%', objectFit: 'fill' }}
           draggable={false}
         />
       </div>
 
-      {/* Label — Original (left) */}
       <span style={{
         position: 'absolute', top: 12, left: 12,
         background: 'rgba(0,0,0,0.6)', color: '#fff',
@@ -77,7 +84,6 @@ export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'com
         Original
       </span>
 
-      {/* Label — Colorized (right) */}
       <span style={{
         position: 'absolute', top: 12, right: 12,
         background: 'rgba(99,102,241,0.85)', color: '#fff',
@@ -88,7 +94,6 @@ export default function ComparisonSlider({ originalSrc, colorizedSrc, alt = 'com
         Colorized
       </span>
 
-      {/* Divider */}
       <div
         role="slider"
         aria-label="Comparison slider"

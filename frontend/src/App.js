@@ -70,8 +70,9 @@ function About() {
         ChromaForge began as an undergraduate project and was independently
         rebuilt from scratch as a controlled comparison study: a CNN
         regression baseline, a U-Net trained with L1 loss only, and a
-        U-Net + PatchGAN conditional GAN — trained under identical
-        conditions to isolate the contribution of each component.
+        U-Net + PatchGAN conditional GAN — systematically compared using 
+        PSNR, SSIM, and perceptual colorfulness to isolate the contribution 
+        of the adversarial objective.
       </p>
       {card('Architecture', 'The generator is a U-Net with 8 encoder and 8 decoder blocks connected by skip connections, taking the L (lightness) channel of a LAB image and predicting the AB (chrominance) channels. The discriminator is a 70×70 PatchGAN that judges 30×30 overlapping patches rather than the full image.')}
       {card('Training', 'Trained on the COCO 2017 dataset for 100 epochs with a combined adversarial + L1 reconstruction loss (λ=100), on a single RTX 3060 laptop GPU. Evaluated on PSNR, SSIM, and the Hasler–Süsstrunk colorfulness metric — full training curves and per-epoch qualitative samples are in the technical report.')}

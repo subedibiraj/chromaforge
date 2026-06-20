@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Link, NavLink } from 'react-router-dom';
 import Colorizer from './components/Colorizer';
 
 const GITHUB_URL = 'https://github.com/subedibiraj/chromaforge';
-const PAPER_URL  = 'https://github.com/subedibiraj/chromaforge/blob/master/docs/latex/chromaforge_report.pdf';
+const PAPER_URL  = 'https://github.com/subedibiraj/chromaforge/blob/master/docs/chromaforge.pdf';
 
 function Navbar() {
   const link = ({ isActive }) => ({

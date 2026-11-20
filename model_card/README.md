@@ -110,6 +110,6 @@ Image.fromarray(result_rgb).save("colorized.jpg")
              for Automatic Grayscale Image Colorization},
   author  = {Subedi, Biraj},
   year    = {2025},
-  url     = {https://github.com/birajsubedi/chromaforge}
+  url     = {https://github.com/subedibiraj/chromaforge}
 }
 ```
